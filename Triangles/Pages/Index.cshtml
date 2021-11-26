@@ -1,0 +1,163 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Triangles";
+}
+@Html.AntiForgeryToken()
+
+<link rel="stylesheet" href="~/css/index.css" />
+
+@* Canvas Container *@
+<div class="canvas-container">
+    <canvas class="canvas-shadow" id="gridCanvas" height="0" width="0"></canvas>
+    <span class="canvas-coordinates" id="lblCoordinates"></span>
+</div>
+
+@* Options Container *@
+<div class="options-container">
+
+    @* Canvas Section *@
+    <form class="needs-validation" id="formCanvas" novalidate>
+        <div class="options-section-title">
+            Canvas
+        </div>
+
+        <div class="options-column options-column-left">
+            <span class="options-section-subtitle">Cell Size :</span>
+        </div>
+        <div class="options-column options-column-right">
+            <input type="number" class="form-control" id="txtCellSize" onchange="ValidateCellSize()" min="10" max="200" step="10" value="100" required>
+            <div class="invalid-feedback">Range [10-200]</div>
+        </div>
+
+        <div class="options-column options-column-left">
+            <span class="options-section-subtitle">Height :</span>
+        </div>
+        <div class="options-column options-column-right">
+            <input type="number" class="form-control" id="txtHeight" min="60" max="1000" step="10" value="600" required>
+            <div class="invalid-feedback">Range [60-1000]</div>
+        </div>
+
+        <div class="options-column options-column-left">
+            <span class="options-section-subtitle">Width :</span>
+        </div>
+        <div class="options-column options-column-right">
+            <input type="number" class="form-control" id="txtWidth" min="60" max="1000" step="10" value="600" required>
+            <div class="invalid-feedback">Range [60-1000]</div>
+        </div>
+
+        <button class="btn btn-success options-column-btn" onclick="ValidateCanvas()">Draw Canvas</button>
+    </form>
+
+    @* Vertex Section *@
+    <form class="needs-validation" id="formVertex" novalidate>
+        <div class="options-section-title">
+            Find by Vertex
+        </div>
+
+        @* [V1X, V1Y] Coordinates *@
+        <div class="options-column options-column-left">
+            <span class="options-section-subtitle">(Angle) V1x :</span>
+        </div>
+        <div class="options-column options-column-right">
+            <input type="number" class="form-control" id="txtV1x" min="0" max="1000" step="100" value="0" required>
+            <div class="invalid-feedback">Range [0-1000]</div>
+        </div>
+        <div class="options-column options-column-left">
+            <span class="options-section-subtitle">(Angle) V1y :</span>
+        </div>
+        <div class="options-column options-column-right">
+            <input type="number" class="form-control" id="txtV1y" min="0" max="1000" step="100" value="100" required>
+            <div class="invalid-feedback">Range [0-1000]</div>
+        </div>
+
+        @* [V2X, V2Y] Coordinates *@
+        <div class="options-column options-column-left">
+            <span class="options-section-subtitle">(Top) V2x :</span>
+        </div>
+        <div class="options-column options-column-right">
+            <input type="number" class="form-control" id="txtV2x" min="0" max="1000" step="100" value="0" required>
+            <div class="invalid-feedback">Range [0-1000]</div>
+        </div>
+        <div class="options-column options-column-left">
+            <span class="options-section-subtitle">(Top) V2y :</span>
+        </div>
+        <div class="options-column options-column-right">
+            <input type="number" class="form-control" id="txtV2y" min="0" max="1000" step="100" value="0" required>
+            <div class="invalid-feedback">Range [0-1000]</div>
+        </div>
+
+        @* [V3X, V3Y] Coordinates *@
+        <div class="options-column options-column-left">
+            <span class="options-section-subtitle">(Bottom) V3x :</span>
+        </div>
+        <div class="options-column options-column-right">
+            <input type="number" class="form-control" id="txtV3x" min="0" max="1000" step="100" value="100" required>
+            <div class="invalid-feedback">Range [0-1000]</div>
+        </div>
+        <div class="options-column options-column-left">
+            <span class="options-section-subtitle">(Bottom) V3y :</span>
+        </div>
+        <div class="options-column options-column-right">
+            <input type="number" class="form-control" id="txtV3y" min="0" max="1000" step="100" value="100" required>
+            <div class="invalid-feedback">Range [0-1000]</div>
+        </div>
+
+        @* Find Result for Coordinates *@
+        <div class="options-column options-column-left">
+            <span class="options-section-subtitle">Result :</span>
+        </div>
+        <div class="options-column options-column-right">
+            <span class="options-section-subtitle" id="lblResult"></span>
+        </div>
+
+        <button class="btn btn-success options-column-btn" onclick="ValidateVertex()">Find Shape</button>
+    </form>
+
+    @* Options Section *@
+    <div class="options-section-title">
+        Options
+    </div>
+
+    <div class="options-column options-column-left">
+        <span class="options-section-subtitle">Show All Triangles :</span>
+    </div>
+    <div class="options-column options-column-right">
+        <label class="toggle-switch">
+            <input id="chkShowAllTriangles" type="checkbox" onclick="SetShowAllTriangles()">
+            <span class="toggle-slider toggle-round"></span>
+        </label>
+    </div>
+
+    <div class="options-hint">
+        <div class="options-hint-col1">
+            <b>Hint:</b>
+        </div>
+        <div class="options-hint-col2">
+            <span>Try hovering over the grid and clicking the cell to select a shape.</span>
+        </div>
+    </div>
+
+    <button class="btn btn-danger options-column-btn" onclick="ResetShow()">Reset</button>
+</div>
+
+@* Reset Modal Popup *@
+<div class="modal fade" id="msgReset" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="msgResetLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="width: 335px;">
+            <div class="modal-header">
+                <h5 class="modal-title" id="msgResetLabel">Confirm Reset</h5>
+                <button type="button" class="btn-close" onclick="ResetHide()" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you wish to reset the screen?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" onclick="ResetCanvas()">Reset</button>
+                <button type="button" class="btn btn-primary" onclick="ResetHide()">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/index.js" asp-append-version="true"></script>
